@@ -905,9 +905,7 @@
 				}
 			}
 
-			inputForm.addEventListener('submit', (event) => {
-				event.preventDefault();
-
+			function onSubmitText() {
 				if (
 					mode == 'edit' &&
 					textInput.value.trim() == ''
@@ -917,6 +915,23 @@
 				}
 
 				toggleMode();
+			}
+
+			textInput.addEventListener('keydown', (event) => {
+				if (
+					(event.ctrlKey || event.metaKey) &&
+					event.shiftKey == false &&
+					event.altKey == false &&
+					event.key === 'Enter'
+				) {
+					event.preventDefault();
+					onSubmitText();
+				}
+			});
+
+			inputForm.addEventListener('submit', (event) => {
+				event.preventDefault();
+				onSubmitText();
 			});
 			playPauseBtn.addEventListener(
 				'click',
