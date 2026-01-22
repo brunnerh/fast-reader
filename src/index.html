@@ -180,7 +180,6 @@
 
         #text-display .word.current {
             color: var(--highlight-color);
-            font-weight: bold;
         }
 
         .word-display {
@@ -351,13 +350,53 @@
             return text.trim().split(/\s+/).filter(word => word.length > 0);
         }
 
+        function positionLetters() {
+            const letters = wordDisplayText.querySelectorAll('.letter');
+            if (letters.length === 0) return;
+            
+            const anchorIndex = Array.from(letters).findIndex(l => l.classList.contains('anchor-letter'));
+            if (anchorIndex === -1) return;
+            
+            const anchorLetter = letters[anchorIndex];
+            const anchorWidth = anchorLetter.getBoundingClientRect().width;
+            
+            anchorLetter.style.position = 'absolute';
+            anchorLetter.style.left = '50%';
+            anchorLetter.style.transform = 'translateX(-50%)';
+            
+            let leftOffset = anchorWidth / 2;
+            for (let i = anchorIndex - 1; i >= 0; i--) {
+                const letter = letters[i];
+                const width = letter.getBoundingClientRect().width;
+                letter.style.position = 'absolute';
+                leftOffset += width;
+                letter.style.left = `calc(50% - ${leftOffset}px)`;
+            }
+            
+            let rightOffset = anchorWidth / 2;
+            for (let i = anchorIndex + 1; i < letters.length; i++) {
+                const letter = letters[i];
+                const width = letter.getBoundingClientRect().width;
+                letter.style.position = 'absolute';
+                letter.style.left = `calc(50% + ${rightOffset}px)`;
+                rightOffset += width;
+            }
+        }
+
         function getAnchorWord(word) {
             if (!word || word.length === 0) return '';
             const anchorIndex = Math.floor((word.length - 1) / 2);
-            const before = word.substring(0, anchorIndex);
-            const anchor = word[anchorIndex];
-            const after = word.substring(anchorIndex + 1);
-            return `<span class="anchor">${before}<span style="color: var(--highlight-color);">${anchor}</span>${after}</span>`;
+            const letters = word.split('');
+            
+            let html = '<div style="position: relative; display: inline-block;">';
+            letters.forEach((letter, index) => {
+                const isAnchor = index === anchorIndex;
+                const anchorClass = isAnchor ? 'anchor-letter' : '';
+                const color = isAnchor ? 'color: var(--highlight-color);' : '';
+                html += `<span class="letter ${anchorClass}" data-index="${index}" style="${color}">${letter}</span>`;
+            });
+            html += '</div>';
+            return html;
         }
 
         function updateWordDisplay() {
@@ -367,6 +406,7 @@
             }
             const word = words[currentIndex];
             wordDisplayText.innerHTML = getAnchorWord(word);
+            positionLetters();
             updateTextDisplay();
             updateProgress();
         }
