@@ -204,12 +204,6 @@
 				position: relative;
 			}
 
-			.word-display .anchor {
-				position: absolute;
-				left: 50%;
-				transform: translateX(-50%);
-			}
-
 			.controls {
 				width: 100%;
 				max-width: 500px;
@@ -443,7 +437,7 @@
 				anchorLetter.style.position = 'absolute';
 				anchorLetter.style.left = '50%';
 				anchorLetter.style.transform =
-					'translateX(-50%)';
+					'translateX(-50%) translateY(-50%)';
 
 				let leftOffset = anchorWidth / 2;
 				for (let i = anchorIndex - 1; i >= 0; i--) {
@@ -454,6 +448,7 @@
 					leftOffset += width;
 					letter.style.left =
 						`calc(50% - ${leftOffset}px)`;
+					letter.style.transform = 'translateY(-50%)';
 				}
 
 				let rightOffset = anchorWidth / 2;
@@ -469,6 +464,7 @@
 					letter.style.left =
 						`calc(50% + ${rightOffset}px)`;
 					rightOffset += width;
+					letter.style.transform = 'translateY(-50%)';
 				}
 			}
 
@@ -480,8 +476,7 @@
 				);
 				const letters = word.split('');
 
-				let html =
-					'<div style="position: relative; display: inline-block;">';
+				let html = '';
 				letters.forEach((letter, index) => {
 					const isAnchor = index === anchorIndex;
 					const anchorClass = isAnchor
@@ -498,7 +493,7 @@
 						>${letter}</span>
 					`;
 				});
-				html += '</div>';
+
 				return html;
 			}
 
