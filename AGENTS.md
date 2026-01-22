@@ -1,0 +1,2 @@
+- Check for type issues via `deno task check`.
+- Format code after changes via `deno fmt`.

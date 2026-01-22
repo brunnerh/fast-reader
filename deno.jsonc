@@ -1,4 +1,7 @@
 {
+	"tasks": {
+		"check": "zsh -c 'deno check =(awk \"/<script>/,/<\\/script>/\" src/index.html | head -n -1 | tail -n +2)'"
+	},
 	"fmt": {
 		"useTabs": true,
 		"indentWidth": 4,
