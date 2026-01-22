@@ -474,27 +474,19 @@
 					else {
 						let wordText = matchText;
 
-						const slashSplit = wordText.split(
-							/(?=\/)/,
-						);
-						let parts = [];
-						let current = '';
+						const parts = [];
+						const slashParts = wordText.split('/');
 
-						for (const part of slashSplit) {
-							if (part.endsWith('/')) {
-								current += part;
-								parts.push(current);
-								current = '';
-							}
-							else {
-								current += part;
-							}
+						for (
+							let i = 0;
+							i < slashParts.length;
+							i++
+						) {
+							if (i < slashParts.length - 1)
+								parts.push(slashParts[i] + '/');
+							else if (slashParts[i].length > 0)
+								parts.push(slashParts[i]);
 						}
-						if (current)
-							parts.push(current);
-						parts = parts.filter((p) =>
-							p.length > 0
-						);
 
 						for (const part of parts) {
 							if (part.length > 20) {
