@@ -868,7 +868,6 @@
 				}
 				else {
 					stopPlayback();
-					textInput.value = text;
 				}
 			}
 
@@ -887,9 +886,12 @@
 						return;
 					}
 
+					if (mode == 'view')
+						toggleMode();
+
 					textInput.value = clipboardText;
 
-					if (mode === 'edit')
+					if (mode == 'edit')
 						toggleMode();
 
 					resetPlayback();
