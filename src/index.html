@@ -404,16 +404,112 @@
 			let text = '';
 			/** @type {'edit' | 'view'} */
 			let mode = 'edit';
-			let words = [];
+			/** @type {(
+			  { type: 'whitespace', text: string } |
+			  { type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string }
+			)[]} */
+			let tokens = [];
+			let wordTokens = [];
 			let currentIndex = 0;
 			let isPlaying = false;
 			let playInterval = null;
 			let wpm = 200;
 
 			function tokenizeText(text) {
-				return text.trim().split(/\s+/).filter((word) =>
-					word.length > 0
-				);
+				const tokens = [];
+				let remaining = text;
+				let wordIndex = 0;
+
+				while (remaining.length > 0) {
+					const match = remaining.match(
+						/^(\s+)|^(\S+)/,
+					);
+					if (!match)
+						break;
+
+					const [matchText] = match;
+
+					if (/^\s+$/.test(matchText)) {
+						tokens.push({
+							type:
+								/** @type {const} */ ('whitespace'),
+							text: matchText,
+						});
+						remaining = remaining.slice(
+							matchText.length,
+						);
+					}
+					else {
+						let wordText = matchText;
+
+						const slashSplit = wordText.split(
+							/(?=\/)/,
+						);
+						let parts = [];
+						let current = '';
+
+						for (const part of slashSplit) {
+							if (part.endsWith('/')) {
+								current += part;
+								parts.push(current);
+								current = '';
+							}
+							else {
+								current += part;
+							}
+						}
+						if (current)
+							parts.push(current);
+						parts = parts.filter((p) =>
+							p.length > 0
+						);
+
+						for (const part of parts) {
+							if (part.length > 20) {
+								const chunkSize = 20;
+								for (
+									let i = 0;
+									i < part.length;
+									i += chunkSize
+								) {
+									const chunk = part.slice(
+										i,
+										i + chunkSize,
+									);
+									const isLast =
+										i + chunkSize >=
+											part.length;
+									const displayText = isLast
+										? chunk
+										: chunk + '-';
+									tokens.push({
+										type:
+											/** @type {const} */ ('word'),
+										text: chunk,
+										wordIndex: wordIndex,
+										partIndex: i /
+											chunkSize,
+										displayText,
+									});
+								}
+							}
+							else {
+								tokens.push({
+									type:
+										/** @type {const} */ ('word'),
+									text: part,
+									wordIndex: wordIndex,
+									partIndex: 0,
+								});
+							}
+							wordIndex++;
+						}
+						remaining = remaining.slice(
+							matchText.length,
+						);
+					}
+				}
+				return tokens;
 			}
 
 			function positionLetters() {
@@ -498,11 +594,12 @@
 			}
 
 			function updateWordDisplay() {
-				if (words.length === 0) {
+				if (wordTokens.length === 0) {
 					wordDisplayText.innerHTML = 'Ready';
 					return;
 				}
-				const word = words[currentIndex];
+				const token = wordTokens[currentIndex];
+				const word = token.displayText || token.text;
 				wordDisplayText.innerHTML = getAnchorWord(word);
 				positionLetters();
 				updateTextDisplay();
@@ -513,11 +610,17 @@
 				if (textDisplay.classList.contains('hidden'))
 					return;
 
+				/** @type {NodeListOf<HTMLElement>} */
 				const wordSpans = textDisplay.querySelectorAll(
 					'.word',
 				);
+				const currentToken = wordTokens[currentIndex];
+
 				wordSpans.forEach((span, index) => {
-					if (index === currentIndex)
+					const wordIndex = parseInt(
+						span.dataset.wordIndex || '0',
+					);
+					if (wordIndex === currentToken.wordIndex)
 						span.classList.add('current');
 					else
 						span.classList.remove('current');
@@ -536,25 +639,25 @@
 			function updateProgress() {
 				progressLabel.textContent = `Progress: ${
 					currentIndex + 1
-				} / ${words.length}`;
+				} / ${wordTokens.length}`;
 				progressSlider.value =
-					(words.length > 0 ? currentIndex : 0)
+					(wordTokens.length > 0 ? currentIndex : 0)
 						.toString();
 				progressSlider.max = Math.max(
-					words.length - 1,
+					wordTokens.length - 1,
 					0,
 				).toString();
 			}
 
 			function startPlayback() {
-				if (words.length === 0)
+				if (wordTokens.length === 0)
 					return;
 				isPlaying = true;
 				playBtn.disabled = true;
 				pauseBtn.disabled = false;
 				const interval = 60000 / wpm;
 				playInterval = setInterval(() => {
-					if (currentIndex < words.length - 1) {
+					if (currentIndex < wordTokens.length - 1) {
 						currentIndex++;
 						updateWordDisplay();
 					}
@@ -579,33 +682,57 @@
 
 			function toggleMode() {
 				if (mode === 'edit') {
-					text = textInput.value.trim();
-					if (!text) {
+					text = textInput.value;
+					if (!text.trim()) {
 						alert('Please enter some text first');
 						return;
 					}
 
-					words = tokenizeText(text);
+					tokens = tokenizeText(text);
+					wordTokens = tokens.filter((t) =>
+						t.type === 'word'
+					);
 
 					textDisplay.innerHTML = '';
-					words.forEach((word, index) => {
-						const span = document.createElement(
-							'span',
-						);
-						span.className = 'word';
-						span.textContent = word + ' ';
-						span.addEventListener('click', () => {
-							stopPlayback();
-							currentIndex = index;
-							updateWordDisplay();
-						});
-						textDisplay.appendChild(span);
+					let wordTokenIndex = 0;
+					tokens.forEach((token) => {
+						if (token.type === 'whitespace') {
+							const span = document.createElement(
+								'span',
+							);
+							span.textContent = token.text;
+							textDisplay.appendChild(span);
+						}
+						else {
+							const span = document.createElement(
+								'span',
+							);
+							span.className = 'word';
+							span.textContent = token.text;
+							span.dataset.wordIndex = token
+								.wordIndex?.toString();
+
+							const currentIndexValue =
+								wordTokenIndex;
+							span.addEventListener(
+								'click',
+								() => {
+									stopPlayback();
+									currentIndex =
+										currentIndexValue;
+									updateWordDisplay();
+								},
+							);
+							textDisplay.appendChild(span);
+							wordTokenIndex++;
+						}
 					});
 
 					resetPlayback();
 				}
 				else {
 					stopPlayback();
+					textInput.value = text;
 				}
 
 				mode = mode == 'edit' ? 'view' : 'edit';
