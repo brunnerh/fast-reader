@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Fast Reader</title>
+		<style>
+			:root {
+				--bg-primary: #ffffff;
+				--bg-secondary: #f5f5f5;
+				--text-primary: #000000;
+				--text-secondary: #333333;
+				--border-color: #cccccc;
+				--highlight-color: #ff0000;
+				--button-bg: #e0e0e0;
+				--button-hover: #d0d0d0;
+				--button-text: #000000;
+				--slider-track: #e0e0e0;
+				--slider-thumb: #007bff;
+				--slider-thumb-hover: #0056b3;
+				--shadow: rgba(0, 0, 0, 0.1);
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					color-scheme: dark;
+
+					--bg-primary: #1a1a1a;
+					--bg-secondary: #2a2a2a;
+					--text-primary: #ffffff;
+					--text-secondary: #cccccc;
+					--border-color: #555555;
+					--highlight-color: #ff7676;
+					--button-bg: #3a3a3a;
+					--button-hover: #4a4a4a;
+					--button-text: #ffffff;
+					--slider-track: #3a3a3a;
+					--shadow: rgba(255, 255, 255, 0.1);
+				}
+			}
+
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				font-family:
+					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+					Oxygen, Ubuntu, sans-serif;
+				background-color: var(--bg-primary);
+				color: var(--text-primary);
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.container {
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+			}
+
+			@media (min-width: 768px) {
+				.container {
+					flex-direction: row;
+				}
+			}
+
+			.panel {
+				padding: 20px;
+				overflow: auto;
+			}
+
+			.left-panel {
+				flex: 1;
+				border-right: 1px solid var(--border-color);
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			@media (min-width: 768px) {
+				.left-panel {
+					flex: 1;
+				}
+			}
+
+			.right-panel {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+
+			@media (min-width: 768px) {
+				.right-panel {
+					flex: 1;
+				}
+			}
+
+			.panel-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 15px;
+			}
+
+			.panel-title {
+				font-size: 1.5em;
+				font-weight: bold;
+			}
+
+			.btn {
+				padding: 8px 16px;
+				background-color: var(--button-bg);
+				color: var(--button-text);
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 14px;
+				transition: background-color 0.2s;
+			}
+
+			.btn:hover {
+				background-color: var(--button-hover);
+			}
+
+			.btn:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+
+			.btn-primary {
+				background-color: var(--slider-thumb);
+				color: white;
+			}
+
+			.btn-primary:hover {
+				background-color: var(--slider-thumb-hover);
+			}
+
+			.btn-large {
+				padding: 12px 24px;
+				font-size: 16px;
+				box-sizing: content-box;
+				min-width: 6ch;
+				text-align: center;
+			}
+
+			#text-input {
+				width: 100%;
+				flex: 1;
+				padding: 15px;
+				font-size: 16px;
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				resize: none;
+				background-color: var(--bg-secondary);
+				color: var(--text-primary);
+			}
+
+			#text-display {
+				width: 100%;
+				flex: 1;
+				padding: 15px;
+				font-size: 16px;
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				background-color: var(--bg-secondary);
+				color: var(--text-secondary);
+				line-height: 1.6;
+				white-space: pre-wrap;
+				word-wrap: break-word;
+				overflow-y: auto;
+			}
+
+			#text-display .word {
+				cursor: pointer;
+				padding: 2px 0;
+				border-radius: 2px;
+			}
+
+			#text-display .word:hover {
+				background-color: var(--button-bg);
+			}
+
+			#text-display .word.current {
+				color: var(--highlight-color);
+			}
+
+			.word-display {
+				width: 100%;
+				max-width: 500px;
+				height: 200px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: 2px solid var(--border-color);
+				border-radius: 8px;
+				margin-bottom: 30px;
+				background-color: var(--bg-secondary);
+				font-size: 32px;
+				font-weight: bold;
+				position: relative;
+			}
+
+			.controls {
+				width: 100%;
+				max-width: 500px;
+				display: flex;
+				flex-direction: column;
+				gap: 20px;
+			}
+
+			.media-controls {
+				display: flex;
+				justify-content: center;
+				gap: 15px;
+			}
+
+			.wpm-controls {
+				display: flex;
+				align-items: center;
+				gap: 15px;
+			}
+
+			.wpm-input {
+				width: 80px;
+				padding: 8px;
+				font-size: 14px;
+				text-align: center;
+				border: 1px solid var(--border-color);
+				border-radius: 4px;
+				background-color: var(--bg-secondary);
+				color: var(--text-primary);
+			}
+
+			.slider-container {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+
+			.slider-label {
+				font-size: 14px;
+				color: var(--text-secondary);
+			}
+
+			.progress-slider-container {
+				margin-top: 10px;
+			}
+
+			.progress-slider {
+				width: 100%;
+				height: 12px;
+				-webkit-appearance: none;
+				appearance: none;
+				background: var(--slider-track);
+				border-radius: 6px;
+				outline: none;
+			}
+
+			.progress-slider::-webkit-slider-thumb {
+				-webkit-appearance: none;
+				appearance: none;
+				width: 20px;
+				height: 20px;
+				background: var(--slider-thumb);
+				border-radius: 50%;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+
+			.progress-slider::-webkit-slider-thumb:hover {
+				background: var(--slider-thumb-hover);
+			}
+
+			.progress-slider::-moz-range-thumb {
+				width: 20px;
+				height: 20px;
+				background: var(--slider-thumb);
+				border-radius: 50%;
+				cursor: pointer;
+				border: none;
+				transition: background 0.2s;
+			}
+
+			.progress-slider::-moz-range-thumb:hover {
+				background: var(--slider-thumb-hover);
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			fieldset {
+				border: none;
+				padding: 0;
+				margin: 0;
+			}
+
+			fieldset:disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<form id="input-form" class="left-panel panel">
+				<div class="panel-header">
+					<h1 class="panel-title">Text</h1>
+					<button id="toggle-mode-btn" class="btn btn-large" type="submit">
+						Start
+					</button>
+				</div>
+				<textarea
+					id="text-input"
+					placeholder="Enter or paste your text here..."
+					required
+				></textarea>
+				<div id="text-display" class="hidden"></div>
+			</form>
+			<div class="right-panel panel">
+				<div class="word-display">
+					<span id="word-display-text" class="anchor">Ready</span>
+				</div>
+				<fieldset id="playback-fieldset" class="controls" disabled>
+					<div class="media-controls">
+						<button
+							id="play-pause-btn"
+							class="btn btn-primary btn-large"
+						>
+							Play
+						</button>
+						<button id="reset-btn" class="btn btn-large">
+							Reset
+						</button>
+					</div>
+					<div class="wpm-controls">
+						<label class="slider-label">WPM:</label>
+						<input
+							type="number"
+							id="wpm-input"
+							class="wpm-input"
+							value="200"
+						>
+						<input
+							type="range"
+							id="wpm-slider"
+							class="progress-slider"
+							value="200"
+							min="100"
+							max="1000"
+							style="flex: 1"
+						>
+					</div>
+					<div class="slider-container progress-slider-container">
+						<label class="slider-label" id="progress-label">
+							Progress: 0 / 0
+						</label>
+						<input
+							type="range"
+							id="progress-slider"
+							class="progress-slider"
+							value="0"
+							min="0"
+							max="100"
+							step="1"
+						>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+
+		<script>
+			// @ts-check
+			/// <reference lib="dom" />
+			/// <reference lib="esnext" />
+
+			/**
+			 * @param {string} id
+			 * @returns {HTMLElement}
+			 */
+			function get(id) {
+				const element = document.getElementById(id);
+				if (!element) {
+					throw new Error(
+						`Element with ID "${id}" not found.`,
+					);
+				}
+
+				return element;
+			}
+
+			const textInput =
+				/** @type {HTMLTextAreaElement} */ (get(
+					'text-input',
+				));
+			const textDisplay = get('text-display');
+			const inputForm =
+				/** @type {HTMLFormElement} */ (get(
+					'input-form',
+				));
+			const toggleModeBtn = get('toggle-mode-btn');
+			const wordDisplayText = get('word-display-text');
+			const playPauseBtn =
+				/** @type {HTMLButtonElement} */ (get(
+					'play-pause-btn',
+				));
+			const resetBtn =
+				/** @type {HTMLButtonElement} */ (get(
+					'reset-btn',
+				));
+			const wpmInput =
+				/** @type {HTMLInputElement} */ (get(
+					'wpm-input',
+				));
+			const wpmSlider =
+				/** @type {HTMLInputElement} */ (get(
+					'wpm-slider',
+				));
+			const progressSlider =
+				/** @type {HTMLInputElement} */ (get(
+					'progress-slider',
+				));
+			const progressLabel = get('progress-label');
+			const playbackFieldset =
+				/** @type {HTMLFieldSetElement} */ (get(
+					'playback-fieldset',
+				));
+
+			let text = '';
+			/** @type {'edit' | 'view'} */
+			let mode = 'edit';
+			/** @type {(
+			  { type: 'whitespace', text: string } |
+			  { type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string }
+			)[]} */
+			let tokens = [];
+			/** @type {{ type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string }[]} */
+			let wordTokens = [];
+			let currentIndex = 0;
+			let isPlaying = false;
+			/** @type {number | undefined} */
+			let playInterval = undefined;
+			let wpm = 200;
+
+			/**
+			 * @param {string} text
+			 */
+			function tokenizeText(text) {
+				const tokens = [];
+				let remaining = text;
+				let wordIndex = 0;
+
+				while (remaining.length > 0) {
+					const match = remaining.match(
+						/^(\s+)|^(\S+)/,
+					);
+					if (!match)
+						break;
+
+					const [matchText] = match;
+
+					if (/^\s+$/.test(matchText)) {
+						tokens.push({
+							type:
+								/** @type {const} */ ('whitespace'),
+							text: matchText,
+						});
+						remaining = remaining.slice(
+							matchText.length,
+						);
+					}
+					else {
+						let wordText = matchText;
+
+						const parts = [];
+						const slashParts = wordText.split('/');
+
+						for (
+							let i = 0;
+							i < slashParts.length;
+							i++
+						) {
+							if (i < slashParts.length - 1)
+								parts.push(slashParts[i] + '/');
+							else if (slashParts[i].length > 0)
+								parts.push(slashParts[i]);
+						}
+
+						for (const part of parts) {
+							if (part.length > 20) {
+								const chunkSize = 20;
+								for (
+									let i = 0;
+									i < part.length;
+									i += chunkSize
+								) {
+									const chunk = part.slice(
+										i,
+										i + chunkSize,
+									);
+									const isLast =
+										i + chunkSize >=
+											part.length;
+									const displayText = isLast
+										? chunk
+										: chunk + '-';
+									tokens.push({
+										type:
+											/** @type {const} */ ('word'),
+										text: chunk,
+										wordIndex: wordIndex,
+										partIndex: i /
+											chunkSize,
+										displayText,
+									});
+								}
+							}
+							else {
+								tokens.push({
+									type:
+										/** @type {const} */ ('word'),
+									text: part,
+									wordIndex: wordIndex,
+									partIndex: 0,
+								});
+							}
+							wordIndex++;
+						}
+						remaining = remaining.slice(
+							matchText.length,
+						);
+					}
+				}
+				return tokens;
+			}
+
+			function positionLetters() {
+				/** @type {NodeListOf<HTMLElement>} */
+				const letters = wordDisplayText
+					.querySelectorAll('.letter');
+				if (letters.length === 0)
+					return;
+
+				const anchorIndex = Array.from(letters)
+					.findIndex((l) =>
+						l.classList.contains('anchor-letter')
+					);
+				if (anchorIndex === -1)
+					return;
+
+				const anchorLetter = letters[anchorIndex];
+				const anchorWidth =
+					anchorLetter.getBoundingClientRect().width;
+
+				anchorLetter.style.position = 'absolute';
+				anchorLetter.style.left = '50%';
+				anchorLetter.style.transform =
+					'translateX(-50%) translateY(-50%)';
+
+				let leftOffset = anchorWidth / 2;
+				for (let i = anchorIndex - 1; i >= 0; i--) {
+					const letter = letters[i];
+					const width =
+						letter.getBoundingClientRect().width;
+					letter.style.position = 'absolute';
+					leftOffset += width;
+					letter.style.left =
+						`calc(50% - ${leftOffset}px)`;
+					letter.style.transform = 'translateY(-50%)';
+				}
+
+				let rightOffset = anchorWidth / 2;
+				for (
+					let i = anchorIndex + 1;
+					i < letters.length;
+					i++
+				) {
+					const letter = letters[i];
+					const width =
+						letter.getBoundingClientRect().width;
+					letter.style.position = 'absolute';
+					letter.style.left =
+						`calc(50% + ${rightOffset}px)`;
+					rightOffset += width;
+					letter.style.transform = 'translateY(-50%)';
+				}
+			}
+
+			/**
+			 * @param {string} word
+			 */
+			function getAnchorWord(word) {
+				if (!word || word.length === 0)
+					return '';
+				const anchorIndex = Math.floor(
+					(word.length - 1) / 2,
+				);
+				const letters = word.split('');
+
+				let html = '';
+				letters.forEach((letter, index) => {
+					const isAnchor = index === anchorIndex;
+					const anchorClass = isAnchor
+						? 'anchor-letter'
+						: '';
+					const color = isAnchor
+						? 'color: var(--highlight-color);'
+						: '';
+					html += `
+						<span
+							class="letter ${anchorClass}"
+							data-index="${index}"
+							style="${color}"
+						>${letter}</span>
+					`;
+				});
+
+				return html;
+			}
+
+			function updateWordDisplay() {
+				if (wordTokens.length === 0) {
+					wordDisplayText.innerHTML = 'Ready';
+					return;
+				}
+				const token = wordTokens[currentIndex];
+				const word = token.displayText || token.text;
+				wordDisplayText.innerHTML = getAnchorWord(word);
+				positionLetters();
+				updateTextDisplay();
+				updateProgress();
+			}
+
+			function updateTextDisplay() {
+				if (textDisplay.classList.contains('hidden'))
+					return;
+
+				/** @type {NodeListOf<HTMLElement>} */
+				const wordSpans = textDisplay.querySelectorAll(
+					'.word',
+				);
+
+				wordSpans.forEach((span, index) => {
+					span.classList.toggle(
+						'current',
+						index === currentIndex,
+					);
+				});
+
+				const currentElement = textDisplay
+					.querySelector('.word.current');
+				if (currentElement) {
+					currentElement.scrollIntoView({
+						behavior: 'smooth',
+						block: 'center',
+					});
+				}
+			}
+
+			function updateProgress() {
+				progressLabel.textContent = `Progress: ${
+					currentIndex + 1
+				} / ${wordTokens.length}`;
+				progressSlider.value =
+					(wordTokens.length > 0 ? currentIndex : 0)
+						.toString();
+				progressSlider.max = Math.max(
+					wordTokens.length - 1,
+					0,
+				).toString();
+			}
+
+			function startPlayback() {
+				if (wordTokens.length === 0)
+					return;
+
+				if (currentIndex >= wordTokens.length - 1) {
+					currentIndex = 0;
+					updateWordDisplay();
+				}
+
+				isPlaying = true;
+				playPauseBtn.textContent = 'Pause';
+				const interval = 60000 / wpm;
+				playInterval = setInterval(() => {
+					if (currentIndex < wordTokens.length - 1) {
+						currentIndex++;
+						updateWordDisplay();
+					}
+					else {
+						stopPlayback();
+					}
+				}, interval);
+			}
+
+			function stopPlayback() {
+				isPlaying = false;
+				clearInterval(playInterval);
+				playInterval = undefined;
+				playPauseBtn.textContent = 'Play';
+			}
+
+			function togglePlayback() {
+				if (isPlaying)
+					stopPlayback();
+				else
+					startPlayback();
+			}
+
+			function resetPlayback() {
+				stopPlayback();
+				currentIndex = 0;
+				updateWordDisplay();
+			}
+
+			function toggleMode() {
+				mode = mode == 'edit' ? 'view' : 'edit';
+
+				toggleModeBtn.textContent = mode == 'edit'
+					? 'Start'
+					: 'Edit';
+				playbackFieldset.disabled = mode == 'edit';
+				textDisplay.classList.toggle(
+					'hidden',
+					mode == 'edit',
+				);
+				textInput.disabled = mode != 'edit';
+				textInput.classList.toggle(
+					'hidden',
+					mode != 'edit',
+				);
+
+				if (mode == 'view') {
+					text = textInput.value;
+
+					tokens = tokenizeText(text);
+					wordTokens = tokens.filter((t) =>
+						t.type === 'word'
+					);
+
+					textDisplay.innerHTML = '';
+					let wordTokenIndex = 0;
+					tokens.forEach((token) => {
+						if (token.type === 'whitespace') {
+							const span = document.createElement(
+								'span',
+							);
+							span.textContent = token.text;
+							textDisplay.appendChild(span);
+						}
+						else {
+							const span = document.createElement(
+								'span',
+							);
+							span.className = 'word';
+							span.textContent = token.text;
+							span.dataset.wordIndex =
+								wordTokenIndex
+									.toString();
+
+							const currentIndexValue =
+								wordTokenIndex;
+							span.addEventListener(
+								'click',
+								() => {
+									stopPlayback();
+									currentIndex =
+										currentIndexValue;
+									updateWordDisplay();
+								},
+							);
+							textDisplay.appendChild(span);
+							wordTokenIndex++;
+						}
+					});
+
+					resetPlayback();
+				}
+				else {
+					stopPlayback();
+					textInput.value = text;
+				}
+			}
+
+			inputForm.addEventListener('submit', (event) => {
+				event.preventDefault();
+
+				if (mode == 'edit' && textInput.value.trim() == '') {
+					alert('Please enter some text first');
+					return;
+				}
+
+				toggleMode();
+			});
+			playPauseBtn.addEventListener(
+				'click',
+				togglePlayback,
+			);
+			resetBtn.addEventListener('click', resetPlayback);
+
+			wpmInput.addEventListener('input', () => {
+				let value = parseInt(wpmInput.value) || 200;
+				value = Math.max(100, Math.min(500, value));
+				wpm = value;
+				wpmSlider.value = value.toString();
+				if (isPlaying) {
+					stopPlayback();
+					startPlayback();
+				}
+			});
+
+			wpmSlider.addEventListener('input', () => {
+				wpm = parseInt(wpmSlider.value);
+				wpmInput.value = wpm.toString();
+				if (isPlaying) {
+					stopPlayback();
+					startPlayback();
+				}
+			});
+
+			progressSlider.addEventListener('input', () => {
+				const wasPlaying = isPlaying;
+				if (isPlaying)
+					stopPlayback();
+				currentIndex = parseInt(progressSlider.value);
+				updateWordDisplay();
+			});
+		</script>
+	</body>
+</html>
