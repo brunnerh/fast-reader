@@ -208,6 +208,10 @@
 				position: relative;
 			}
 
+			.letter {
+				position: absolute;
+			}
+
 			.controls {
 				width: 100%;
 				max-width: 500px;
@@ -629,8 +633,6 @@
 				const anchorWidth =
 					anchorLetter.getBoundingClientRect().width;
 
-				anchorLetter.style.position = 'absolute';
-				anchorLetter.style.left = '50%';
 				anchorLetter.style.transform =
 					'translateX(-50%) translateY(-50%)';
 
@@ -639,11 +641,9 @@
 					const letter = letters[i];
 					const width =
 						letter.getBoundingClientRect().width;
-					letter.style.position = 'absolute';
 					leftOffset += width;
-					letter.style.left =
-						`calc(50% - ${leftOffset}px)`;
-					letter.style.transform = 'translateY(-50%)';
+					letter.style.transform =
+						`translateX(-${leftOffset}px) translateY(-50%)`;
 				}
 
 				let rightOffset = anchorWidth / 2;
@@ -655,11 +655,9 @@
 					const letter = letters[i];
 					const width =
 						letter.getBoundingClientRect().width;
-					letter.style.position = 'absolute';
-					letter.style.left =
-						`calc(50% + ${rightOffset}px)`;
+					letter.style.transform =
+						`translateX(${rightOffset}px) translateY(-50%)`;
 					rightOffset += width;
-					letter.style.transform = 'translateY(-50%)';
 				}
 			}
 
