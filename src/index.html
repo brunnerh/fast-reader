@@ -145,6 +145,9 @@
 			.btn-large {
 				padding: 12px 24px;
 				font-size: 16px;
+				box-sizing: content-box;
+				min-width: 6ch;
+				text-align: center;
 			}
 
 			#text-input {
@@ -169,7 +172,6 @@
 				background-color: var(--bg-secondary);
 				color: var(--text-secondary);
 				line-height: 1.6;
-				cursor: pointer;
 				white-space: pre-wrap;
 				word-wrap: break-word;
 				overflow-y: auto;
@@ -293,6 +295,17 @@
 			.hidden {
 				display: none !important;
 			}
+
+			fieldset {
+				border: none;
+				padding: 0;
+				margin: 0;
+			}
+
+			fieldset:disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -314,13 +327,13 @@
 				<div class="word-display">
 					<span id="word-display-text" class="anchor">Ready</span>
 				</div>
-				<div class="controls">
+				<fieldset id="playback-fieldset" class="controls" disabled>
 					<div class="media-controls">
-						<button id="play-btn" class="btn btn-primary btn-large">
+						<button
+							id="play-pause-btn"
+							class="btn btn-primary btn-large"
+						>
 							Play
-						</button>
-						<button id="pause-btn" class="btn btn-large" disabled>
-							Pause
 						</button>
 						<button id="reset-btn" class="btn btn-large">
 							Reset
@@ -358,7 +371,7 @@
 							step="1"
 						>
 					</div>
-				</div>
+				</fieldset>
 			</div>
 		</div>
 
@@ -389,13 +402,9 @@
 			const textDisplay = get('text-display');
 			const toggleModeBtn = get('toggle-mode-btn');
 			const wordDisplayText = get('word-display-text');
-			const playBtn =
+			const playPauseBtn =
 				/** @type {HTMLButtonElement} */ (get(
-					'play-btn',
-				));
-			const pauseBtn =
-				/** @type {HTMLButtonElement} */ (get(
-					'pause-btn',
+					'play-pause-btn',
 				));
 			const resetBtn =
 				/** @type {HTMLButtonElement} */ (get(
@@ -414,6 +423,10 @@
 					'progress-slider',
 				));
 			const progressLabel = get('progress-label');
+			const playbackFieldset =
+				/** @type {HTMLFieldSetElement} */ (get(
+					'playback-fieldset',
+				));
 
 			let text = '';
 			/** @type {'edit' | 'view'} */
@@ -676,8 +689,7 @@
 				if (wordTokens.length === 0)
 					return;
 				isPlaying = true;
-				playBtn.disabled = true;
-				pauseBtn.disabled = false;
+				playPauseBtn.textContent = 'Pause';
 				const interval = 60000 / wpm;
 				playInterval = setInterval(() => {
 					if (currentIndex < wordTokens.length - 1) {
@@ -694,8 +706,14 @@
 				isPlaying = false;
 				clearInterval(playInterval);
 				playInterval = undefined;
-				playBtn.disabled = false;
-				pauseBtn.disabled = true;
+				playPauseBtn.textContent = 'Play';
+			}
+
+			function togglePlayback() {
+				if (isPlaying)
+					stopPlayback();
+				else
+					startPlayback();
 			}
 
 			function resetPlayback() {
@@ -764,6 +782,7 @@
 				toggleModeBtn.textContent = mode == 'edit'
 					? 'Start'
 					: 'Edit';
+				playbackFieldset.disabled = mode == 'edit';
 				textDisplay.classList.toggle(
 					'hidden',
 					mode == 'edit',
@@ -775,8 +794,10 @@
 			}
 
 			toggleModeBtn.addEventListener('click', toggleMode);
-			playBtn.addEventListener('click', startPlayback);
-			pauseBtn.addEventListener('click', stopPlayback);
+			playPauseBtn.addEventListener(
+				'click',
+				togglePlayback,
+			);
 			resetBtn.addEventListener('click', resetPlayback);
 
 			wpmInput.addEventListener('input', () => {
