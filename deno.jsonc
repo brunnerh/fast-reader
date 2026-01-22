@@ -1,6 +1,7 @@
 {
 	"tasks": {
-		"check": "TMPSUFFIX=.js zsh -c 'npx --package typescript tsc --strict --allowJs --noEmit =(awk \"/<script>/,/<\\/script>/\" src/index.html | head -n -1 | tail -n +2)'"
+		"check": "TMPSUFFIX=.js zsh -c 'npx --package typescript tsc --strict --allowJs --noEmit =(awk \"/<script>/,/<\\/script>/\" src/index.html | head -n -1 | tail -n +2)'",
+		"deploy": "npx gh-pages -d src --nojekyll"
 	},
 	"fmt": {
 		"useTabs": true,

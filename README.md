@@ -3,6 +3,8 @@
 A speed reading application that displays text one word at a time, focusing on a
 central anchor letter to reduce eye movement and improve reading speed.
 
+[Live Application](https://brunnerh.github.io/fast-reader/)
+
 ## Features
 
 - **Anchor letter positioning**: Displays words centered on their middle letter
