@@ -641,16 +641,11 @@
 				const wordSpans = textDisplay.querySelectorAll(
 					'.word',
 				);
-				const currentToken = wordTokens[currentIndex];
 
 				wordSpans.forEach((span, index) => {
-					const wordIndex = parseInt(
-						span.dataset.wordIndex || '0',
-					);
-
 					span.classList.toggle(
 						'current',
-						wordIndex == currentToken.wordIndex,
+						index === currentIndex,
 					);
 				});
 
@@ -715,7 +710,22 @@
 			}
 
 			function toggleMode() {
-				if (mode === 'edit') {
+				mode = mode == 'edit' ? 'view' : 'edit';
+
+				toggleModeBtn.textContent = mode == 'edit'
+					? 'Start'
+					: 'Edit';
+				playbackFieldset.disabled = mode == 'edit';
+				textDisplay.classList.toggle(
+					'hidden',
+					mode == 'edit',
+				);
+				textInput.classList.toggle(
+					'hidden',
+					mode != 'edit',
+				);
+
+				if (mode == 'view') {
 					text = textInput.value;
 					if (!text.trim()) {
 						alert('Please enter some text first');
@@ -743,8 +753,9 @@
 							);
 							span.className = 'word';
 							span.textContent = token.text;
-							span.dataset.wordIndex = token
-								.wordIndex?.toString();
+							span.dataset.wordIndex =
+								wordTokenIndex
+									.toString();
 
 							const currentIndexValue =
 								wordTokenIndex;
@@ -768,21 +779,6 @@
 					stopPlayback();
 					textInput.value = text;
 				}
-
-				mode = mode == 'edit' ? 'view' : 'edit';
-
-				toggleModeBtn.textContent = mode == 'edit'
-					? 'Start'
-					: 'Edit';
-				playbackFieldset.disabled = mode == 'edit';
-				textDisplay.classList.toggle(
-					'hidden',
-					mode == 'edit',
-				);
-				textInput.classList.toggle(
-					'hidden',
-					mode != 'edit',
-				);
 			}
 
 			toggleModeBtn.addEventListener('click', toggleMode);
