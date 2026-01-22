@@ -30,6 +30,7 @@
 					--text-primary: #ffffff;
 					--text-secondary: #cccccc;
 					--border-color: #555555;
+					--highlight-color: #ff7676;
 					--button-bg: #3a3a3a;
 					--button-hover: #4a4a4a;
 					--button-text: #ffffff;
@@ -363,11 +364,24 @@
 
 		<script>
 			// @ts-check
-			/** @type {(id: string) => HTMLElement} */
-			const get = (
-				id,
-			) => /** @type {HTMLElement} */ (document
-				.getElementById(id));
+			/// <reference lib="dom" />
+			/// <reference lib="esnext" />
+
+			/**
+			 * @param {string} id
+			 * @returns {HTMLElement}
+			 */
+			function get(id) {
+				const element = document.getElementById(id);
+				if (!element) {
+					throw new Error(
+						`Element with ID "${id}" not found.`,
+					);
+				}
+
+				return element;
+			}
+
 			const textInput =
 				/** @type {HTMLTextAreaElement} */ (get(
 					'text-input',
@@ -409,12 +423,17 @@
 			  { type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string }
 			)[]} */
 			let tokens = [];
+			/** @type {{ type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string }[]} */
 			let wordTokens = [];
 			let currentIndex = 0;
 			let isPlaying = false;
-			let playInterval = null;
+			/** @type {number | undefined} */
+			let playInterval = undefined;
 			let wpm = 200;
 
+			/**
+			 * @param {string} text
+			 */
 			function tokenizeText(text) {
 				const tokens = [];
 				let remaining = text;
@@ -564,6 +583,9 @@
 				}
 			}
 
+			/**
+			 * @param {string} word
+			 */
 			function getAnchorWord(word) {
 				if (!word || word.length === 0)
 					return '';
@@ -620,10 +642,11 @@
 					const wordIndex = parseInt(
 						span.dataset.wordIndex || '0',
 					);
-					if (wordIndex === currentToken.wordIndex)
-						span.classList.add('current');
-					else
-						span.classList.remove('current');
+
+					span.classList.toggle(
+						'current',
+						wordIndex == currentToken.wordIndex,
+					);
 				});
 
 				const currentElement = textDisplay
@@ -670,6 +693,7 @@
 			function stopPlayback() {
 				isPlaying = false;
 				clearInterval(playInterval);
+				playInterval = undefined;
 				playBtn.disabled = false;
 				pauseBtn.disabled = true;
 			}

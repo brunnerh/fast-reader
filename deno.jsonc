@@ -1,6 +1,6 @@
 {
 	"tasks": {
-		"check": "zsh -c 'deno check =(awk \"/<script>/,/<\\/script>/\" src/index.html | head -n -1 | tail -n +2)'"
+		"check": "TMPSUFFIX=.js zsh -c 'npx --package typescript tsc --strict --allowJs --noEmit =(awk \"/<script>/,/<\\/script>/\" src/index.html | head -n -1 | tail -n +2)'"
 	},
 	"fmt": {
 		"useTabs": true,
