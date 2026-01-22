@@ -488,8 +488,13 @@
 					const color = isAnchor
 						? 'color: var(--highlight-color);'
 						: '';
-					html +=
-						`<span class="letter ${anchorClass}" data-index="${index}" style="${color}">${letter}</span>`;
+					html += `
+						<span
+							class="letter ${anchorClass}"
+							data-index="${index}"
+							style="${color}"
+						>${letter}</span>
+					`;
 				});
 				html += '</div>';
 				return html;
