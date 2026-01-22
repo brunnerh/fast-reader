@@ -310,19 +310,20 @@
 	</head>
 	<body>
 		<div class="container">
-			<div class="left-panel panel">
+			<form id="input-form" class="left-panel panel">
 				<div class="panel-header">
 					<h1 class="panel-title">Text</h1>
-					<button id="toggle-mode-btn" class="btn btn-large">
+					<button id="toggle-mode-btn" class="btn btn-large" type="submit">
 						Start
 					</button>
 				</div>
 				<textarea
 					id="text-input"
 					placeholder="Enter or paste your text here..."
+					required
 				></textarea>
 				<div id="text-display" class="hidden"></div>
-			</div>
+			</form>
 			<div class="right-panel panel">
 				<div class="word-display">
 					<span id="word-display-text" class="anchor">Ready</span>
@@ -400,6 +401,10 @@
 					'text-input',
 				));
 			const textDisplay = get('text-display');
+			const inputForm =
+				/** @type {HTMLFormElement} */ (get(
+					'input-form',
+				));
 			const toggleModeBtn = get('toggle-mode-btn');
 			const wordDisplayText = get('word-display-text');
 			const playPauseBtn =
@@ -675,6 +680,12 @@
 			function startPlayback() {
 				if (wordTokens.length === 0)
 					return;
+
+				if (currentIndex >= wordTokens.length - 1) {
+					currentIndex = 0;
+					updateWordDisplay();
+				}
+
 				isPlaying = true;
 				playPauseBtn.textContent = 'Pause';
 				const interval = 60000 / wpm;
@@ -720,6 +731,7 @@
 					'hidden',
 					mode == 'edit',
 				);
+				textInput.disabled = mode != 'edit';
 				textInput.classList.toggle(
 					'hidden',
 					mode != 'edit',
@@ -727,10 +739,6 @@
 
 				if (mode == 'view') {
 					text = textInput.value;
-					if (!text.trim()) {
-						alert('Please enter some text first');
-						return;
-					}
 
 					tokens = tokenizeText(text);
 					wordTokens = tokens.filter((t) =>
@@ -781,7 +789,16 @@
 				}
 			}
 
-			toggleModeBtn.addEventListener('click', toggleMode);
+			inputForm.addEventListener('submit', (event) => {
+				event.preventDefault();
+
+				if (mode == 'edit' && textInput.value.trim() == '') {
+					alert('Please enter some text first');
+					return;
+				}
+
+				toggleMode();
+			});
 			playPauseBtn.addEventListener(
 				'click',
 				togglePlayback,
