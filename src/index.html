@@ -208,8 +208,8 @@
 				position: relative;
 			}
 
-			.letter {
-				position: absolute;
+			#word-display-text {
+				display: flex;
 			}
 
 			.controls {
@@ -366,7 +366,7 @@
 				<div id="text-display" class="hidden"></div>
 			</form>
 			<div class="right-panel panel">
-				<div class="word-display">
+				<div id="word-display" class="word-display">
 					<span id="word-display-text" class="anchor">Ready</span>
 				</div>
 				<fieldset id="playback-fieldset" class="controls" disabled>
@@ -451,6 +451,7 @@
 				/** @type {HTMLButtonElement} */ (get(
 					'paste-btn',
 				));
+			const wordDisplay = get('word-display');
 			const wordDisplayText = get('word-display-text');
 			const playPauseBtn =
 				/** @type {HTMLButtonElement} */ (get(
@@ -630,35 +631,21 @@
 					return;
 
 				const anchorLetter = letters[anchorIndex];
-				const anchorWidth =
-					anchorLetter.getBoundingClientRect().width;
 
-				anchorLetter.style.transform =
-					'translateX(-50%) translateY(-50%)';
+				const anchorRect = anchorLetter
+					.getBoundingClientRect();
+				const anchorCenterX = anchorRect.left +
+					anchorRect.width / 2;
+				const boxRect = wordDisplay
+					.getBoundingClientRect();
+				const boxCenterX = boxRect.left +
+					boxRect.width / 2;
 
-				let leftOffset = anchorWidth / 2;
-				for (let i = anchorIndex - 1; i >= 0; i--) {
-					const letter = letters[i];
-					const width =
-						letter.getBoundingClientRect().width;
-					leftOffset += width;
-					letter.style.transform =
-						`translateX(-${leftOffset}px) translateY(-50%)`;
-				}
-
-				let rightOffset = anchorWidth / 2;
-				for (
-					let i = anchorIndex + 1;
-					i < letters.length;
-					i++
-				) {
-					const letter = letters[i];
-					const width =
-						letter.getBoundingClientRect().width;
-					letter.style.transform =
-						`translateX(${rightOffset}px) translateY(-50%)`;
-					rightOffset += width;
-				}
+				const offsetX = boxCenterX - anchorCenterX;
+				letters.forEach((l) =>
+					l.style.transform =
+						`translateX(${offsetX}px)`
+				);
 			}
 
 			/**
@@ -773,8 +760,8 @@
 
 				if (currentIndex < wordTokens.length - 1) {
 					currentIndex++;
-					updateWordDisplay();
 					schedulePlayNext();
+					updateWordDisplay();
 				}
 				else {
 					stopPlayback();
