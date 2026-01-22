@@ -1,0 +1,23 @@
+{
+	"fmt": {
+		"useTabs": true,
+		"indentWidth": 4,
+		"singleQuote": true,
+		"nextControlFlowPosition": "nextLine",
+		"singleBodyPosition": "nextLine",
+		"useBraces": "preferNone"
+	},
+	"lint": {
+		"rules": {
+			"exclude": [
+				"no-explicit-any",
+				"no-inner-declarations",
+				"no-window",
+				"no-window-prefix",
+				"no-unused-vars",
+				"ban-ts-comment",
+				"ban-types"
+			]
+		}
+	}
+}
