@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast Reader</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #000000;
+            --text-secondary: #333333;
+            --border-color: #cccccc;
+            --highlight-color: #ff0000;
+            --button-bg: #e0e0e0;
+            --button-hover: #d0d0d0;
+            --button-text: #000000;
+            --slider-track: #e0e0e0;
+            --slider-thumb: #007bff;
+            --slider-thumb-hover: #0056b3;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2a2a2a;
+                --text-primary: #ffffff;
+                --text-secondary: #cccccc;
+                --border-color: #555555;
+                --button-bg: #3a3a3a;
+                --button-hover: #4a4a4a;
+                --button-text: #ffffff;
+                --slider-track: #3a3a3a;
+                --shadow: rgba(255, 255, 255, 0.1);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+
+        .panel {
+            padding: 20px;
+            overflow: auto;
+        }
+
+        .left-panel {
+            flex: 1;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) {
+            .left-panel {
+                flex: 1;
+            }
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .right-panel {
+                flex: 1;
+            }
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-title {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--button-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--slider-thumb);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--slider-thumb-hover);
+        }
+
+        .btn-large {
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+
+        #text-input {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            resize: vertical;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        #text-display {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            font-size: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            cursor: pointer;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #text-display .word {
+            cursor: pointer;
+            padding: 2px 0;
+            border-radius: 2px;
+        }
+
+        #text-display .word:hover {
+            background-color: var(--button-bg);
+        }
+
+        #text-display .word.current {
+            color: var(--highlight-color);
+            font-weight: bold;
+        }
+
+        .word-display {
+            width: 100%;
+            max-width: 500px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            background-color: var(--bg-secondary);
+            font-size: 48px;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .word-display .anchor {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .media-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .wpm-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .wpm-input {
+            width: 80px;
+            padding: 8px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .progress-slider-container {
+            margin-top: 10px;
+        }
+
+        .progress-slider {
+            width: 100%;
+            height: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--slider-track);
+            border-radius: 6px;
+            outline: none;
+        }
+
+        .progress-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--slider-thumb);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .progress-slider::-webkit-slider-thumb:hover {
+            background: var(--slider-thumb-hover);
+        }
+
+        .progress-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--slider-thumb);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .progress-slider::-moz-range-thumb:hover {
+            background: var(--slider-thumb-hover);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-panel panel">
+            <div class="panel-header">
+                <h1 class="panel-title">Text</h1>
+                <button id="toggle-mode-btn" class="btn btn-large">Start</button>
+            </div>
+            <textarea id="text-input" placeholder="Enter or paste your text here..."></textarea>
+            <div id="text-display" class="hidden"></div>
+        </div>
+        <div class="right-panel panel">
+            <div class="word-display">
+                <span id="word-display-text" class="anchor">Ready</span>
+            </div>
+            <div class="controls">
+                <div class="media-controls">
+                    <button id="play-btn" class="btn btn-primary btn-large">Play</button>
+                    <button id="pause-btn" class="btn btn-large" disabled>Pause</button>
+                    <button id="reset-btn" class="btn btn-large">Reset</button>
+                </div>
+                <div class="wpm-controls">
+                    <label class="slider-label">WPM:</label>
+                    <input type="number" id="wpm-input" class="wpm-input" value="200" min="100" max="500">
+                    <input type="range" id="wpm-slider" class="progress-slider" value="200" min="100" max="500" style="flex: 1;">
+                </div>
+                <div class="slider-container progress-slider-container">
+                    <label class="slider-label" id="progress-label">Progress: 0 / 0</label>
+                    <input type="range" id="progress-slider" class="progress-slider" value="0" min="0" max="100" step="1">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('text-input');
+        const textDisplay = document.getElementById('text-display');
+        const toggleModeBtn = document.getElementById('toggle-mode-btn');
+        const wordDisplayText = document.getElementById('word-display-text');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const wpmInput = document.getElementById('wpm-input');
+        const wpmSlider = document.getElementById('wpm-slider');
+        const progressLabel = document.getElementById('progress-label');
+        const progressSlider = document.getElementById('progress-slider');
+
+        let words = [];
+        let currentIndex = 0;
+        let isPlaying = false;
+        let playInterval = null;
+        let wpm = 200;
+
+        function tokenizeText(text) {
+            return text.trim().split(/\s+/).filter(word => word.length > 0);
+        }
+
+        function getAnchorWord(word) {
+            if (!word || word.length === 0) return '';
+            const anchorIndex = Math.floor((word.length - 1) / 2);
+            const before = word.substring(0, anchorIndex);
+            const anchor = word[anchorIndex];
+            const after = word.substring(anchorIndex + 1);
+            return `<span class="anchor">${before}<span style="color: var(--highlight-color);">${anchor}</span>${after}</span>`;
+        }
+
+        function updateWordDisplay() {
+            if (words.length === 0) {
+                wordDisplayText.innerHTML = 'Ready';
+                return;
+            }
+            const word = words[currentIndex];
+            wordDisplayText.innerHTML = getAnchorWord(word);
+            updateTextDisplay();
+            updateProgress();
+        }
+
+        function updateTextDisplay() {
+            if (textDisplay.classList.contains('hidden')) return;
+            
+            const wordSpans = textDisplay.querySelectorAll('.word');
+            wordSpans.forEach((span, index) => {
+                if (index === currentIndex) {
+                    span.classList.add('current');
+                } else {
+                    span.classList.remove('current');
+                }
+            });
+            
+            const currentElement = textDisplay.querySelector('.word.current');
+            if (currentElement) {
+                currentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateProgress() {
+            progressLabel.textContent = `Progress: ${currentIndex + 1} / ${words.length}`;
+            progressSlider.value = words.length > 0 ? currentIndex : 0;
+            progressSlider.max = Math.max(words.length - 1, 0);
+        }
+
+        function startPlayback() {
+            if (words.length === 0) return;
+            isPlaying = true;
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            const interval = 60000 / wpm;
+            playInterval = setInterval(() => {
+                if (currentIndex < words.length - 1) {
+                    currentIndex++;
+                    updateWordDisplay();
+                } else {
+                    stopPlayback();
+                }
+            }, interval);
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            clearInterval(playInterval);
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        function resetPlayback() {
+            stopPlayback();
+            currentIndex = 0;
+            updateWordDisplay();
+        }
+
+        function toggleMode() {
+            const isEdit = !textInput.classList.contains('hidden');
+            
+            if (isEdit) {
+                const text = textInput.value.trim();
+                if (!text) {
+                    alert('Please enter some text first');
+                    return;
+                }
+                words = tokenizeText(text);
+                textInput.classList.add('hidden');
+                textDisplay.classList.remove('hidden');
+                toggleModeBtn.textContent = 'Edit';
+                
+                textDisplay.innerHTML = '';
+                words.forEach((word, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    span.textContent = word + ' ';
+                    span.addEventListener('click', () => {
+                        stopPlayback();
+                        currentIndex = index;
+                        updateWordDisplay();
+                    });
+                    textDisplay.appendChild(span);
+                });
+                
+                resetPlayback();
+            } else {
+                stopPlayback();
+                textDisplay.classList.add('hidden');
+                textInput.classList.remove('hidden');
+                toggleModeBtn.textContent = 'Start';
+            }
+        }
+
+        toggleModeBtn.addEventListener('click', toggleMode);
+        playBtn.addEventListener('click', startPlayback);
+        pauseBtn.addEventListener('click', stopPlayback);
+        resetBtn.addEventListener('click', resetPlayback);
+
+        wpmInput.addEventListener('input', (e) => {
+            let value = parseInt(e.target.value) || 200;
+            value = Math.max(100, Math.min(500, value));
+            wpm = value;
+            wpmSlider.value = value;
+            if (isPlaying) {
+                stopPlayback();
+                startPlayback();
+            }
+        });
+
+        wpmSlider.addEventListener('input', (e) => {
+            wpm = parseInt(e.target.value);
+            wpmInput.value = wpm;
+            if (isPlaying) {
+                stopPlayback();
+                startPlayback();
+            }
+        });
+
+        progressSlider.addEventListener('input', (e) => {
+            const wasPlaying = isPlaying;
+            if (isPlaying) {
+                stopPlayback();
+            }
+            currentIndex = parseInt(e.target.value);
+            updateWordDisplay();
+        });
+    </script>
+</body>
+</html>
