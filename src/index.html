@@ -4,38 +4,56 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>Fast Reader</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap"
+			rel="stylesheet"
+		>
 		<style>
 			:root {
-				--bg-primary: #ffffff;
-				--bg-secondary: #f5f5f5;
-				--text-primary: #000000;
-				--text-secondary: #333333;
-				--border-color: #cccccc;
-				--highlight-color: #ff0000;
-				--button-bg: #e0e0e0;
-				--button-hover: #d0d0d0;
-				--button-text: #000000;
-				--slider-track: #e0e0e0;
-				--slider-thumb: #007bff;
-				--slider-thumb-hover: #0056b3;
-				--shadow: rgba(0, 0, 0, 0.1);
+				color-scheme: dark;
+
+				--bg-primary: #0a0e14;
+				--bg-secondary: #151b26;
+				--bg-tertiary: #1a2332;
+				--text-primary: #e6edf3;
+				--text-secondary: #8b95a5;
+				--border-color: #2d3748;
+				--highlight-color: #fbbf24;
+				--accent-primary: #06d6a0;
+				--accent-secondary: #00b4d8;
+				--button-bg: #1e2936;
+				--button-hover: #2d3e50;
+				--button-text: #e6edf3;
+				--slider-track: #1e2936;
+				--slider-thumb: #06d6a0;
+				--slider-thumb-hover: #05c28f;
+				--shadow: rgba(0, 0, 0, 0.4);
+				--glow: rgba(6, 214, 160, 0.3);
 			}
 
-			@media (prefers-color-scheme: dark) {
+			@media (prefers-color-scheme: light) {
 				:root {
-					color-scheme: dark;
+					color-scheme: light;
 
-					--bg-primary: #1a1a1a;
-					--bg-secondary: #2a2a2a;
-					--text-primary: #ffffff;
-					--text-secondary: #cccccc;
-					--border-color: #555555;
-					--highlight-color: #ff7676;
-					--button-bg: #3a3a3a;
-					--button-hover: #4a4a4a;
-					--button-text: #ffffff;
-					--slider-track: #3a3a3a;
-					--shadow: rgba(255, 255, 255, 0.1);
+					--bg-primary: #f8fafc;
+					--bg-secondary: #ffffff;
+					--bg-tertiary: #f1f5f9;
+					--text-primary: #0f172a;
+					--text-secondary: #64748b;
+					--border-color: #e2e8f0;
+					--highlight-color: #f59e0b;
+					--accent-primary: #06d6a0;
+					--accent-secondary: #0284c7;
+					--button-bg: #f1f5f9;
+					--button-hover: #e2e8f0;
+					--button-text: #0f172a;
+					--slider-track: #e2e8f0;
+					--slider-thumb: #06d6a0;
+					--slider-thumb-hover: #05c28f;
+					--shadow: rgba(0, 0, 0, 0.1);
+					--glow: rgba(6, 214, 160, 0.2);
 				}
 			}
 
@@ -45,43 +63,105 @@
 				padding: 0;
 			}
 
+			@keyframes fadeInUp {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes glow {
+				0%, 100% {
+					box-shadow:
+						0 0 20px var(--glow),
+						0 4px 30px var(--shadow);
+				}
+				50% {
+					box-shadow:
+						0 0 30px var(--glow),
+						0 4px 30px var(--shadow);
+				}
+			}
+
 			body {
 				font-family:
-					-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-					Oxygen, Ubuntu, sans-serif;
-				background-color: var(--bg-primary);
+					'DM Sans', -apple-system, BlinkMacSystemFont,
+					'Segoe UI', sans-serif;
+				background: linear-gradient(
+					135deg,
+					var(--bg-primary) 0%,
+					var(--bg-secondary) 100%
+				);
 				color: var(--text-primary);
 				height: 100vh;
 				display: flex;
 				flex-direction: column;
+				position: relative;
+				overflow: hidden;
+			}
+
+			body::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-image:
+					radial-gradient(
+						circle at 20% 80%,
+						rgba(6, 214, 160, 0.05) 0%,
+						transparent 50%
+					),
+					radial-gradient(
+					circle at 80% 20%,
+					rgba(0, 180, 216, 0.05) 0%,
+					transparent 50%
+				);
+				pointer-events: none;
+				z-index: 0;
 			}
 
 			.container {
 				display: flex;
 				flex-direction: column;
 				height: 100%;
+				position: relative;
+				z-index: 2;
+				animation: fadeInUp 0.8s ease-out;
 			}
 
-			@media (min-width: 768px) {
+			@media (min-width: 1000px) {
 				.container {
 					flex-direction: row;
 				}
 			}
 
 			.panel {
-				padding: 20px;
+				padding: 24px;
 				overflow: auto;
+				backdrop-filter: blur(10px);
 			}
 
 			.left-panel {
 				flex: 1;
-				border-right: 1px solid var(--border-color);
+				border-right: 2px solid var(--border-color);
 				display: flex;
 				flex-direction: column;
 				overflow: hidden;
+				background: linear-gradient(
+					180deg,
+					var(--bg-secondary) 0%,
+					var(--bg-tertiary) 100%
+				);
+				animation: fadeInUp 0.8s ease-out 0.1s both;
 			}
 
-			@media (min-width: 768px) {
+			@media (min-width: 1000px) {
 				.left-panel {
 					flex: 1;
 				}
@@ -93,9 +173,11 @@
 				flex-direction: column;
 				align-items: center;
 				justify-content: center;
+				background: var(--bg-primary);
+				animation: fadeInUp 0.8s ease-out 0.2s both;
 			}
 
-			@media (min-width: 768px) {
+			@media (min-width: 1000px) {
 				.right-panel {
 					flex: 1;
 				}
@@ -105,46 +187,116 @@
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 15px;
+				margin-bottom: 20px;
+				padding-bottom: 16px;
+				border-bottom: 2px solid var(--border-color);
 			}
 
 			.panel-title {
-				font-size: 1.5em;
-				font-weight: bold;
+				font-size: 1.25em;
+				font-weight: 700;
+				letter-spacing: 0.5px;
+				text-transform: uppercase;
+				color: var(--accent-primary);
+				position: relative;
+				padding-left: 12px;
+			}
+
+			.panel-title::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 4px;
+				height: 100%;
+				background: linear-gradient(
+					180deg,
+					var(--accent-primary),
+					var(--accent-secondary)
+				);
+				border-radius: 2px;
 			}
 
 			.btn {
-				padding: 8px 16px;
-				background-color: var(--button-bg);
+				padding: 10px 20px;
+				background: var(--button-bg);
 				color: var(--button-text);
-				border: none;
-				border-radius: 4px;
+				border: 1px solid var(--border-color);
+				border-radius: 6px;
 				cursor: pointer;
 				font-size: 14px;
-				transition: background-color 0.2s;
+				font-weight: 500;
+				font-family: 'DM Sans', sans-serif;
+				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+				position: relative;
+				overflow: hidden;
+			}
+
+			.btn::before {
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 0;
+				height: 0;
+				border-radius: 50%;
+				background: rgba(255, 255, 255, 0.1);
+				transform: translate(-50%, -50%);
+				transition: width 0.6s, height 0.6s;
+			}
+
+			.btn:hover::before {
+				width: 300px;
+				height: 300px;
 			}
 
 			.btn:hover {
-				background-color: var(--button-hover);
+				background: var(--button-hover);
+				transform: translateY(-1px);
+				box-shadow: 0 4px 12px var(--shadow);
+			}
+
+			.btn:active {
+				transform: translateY(0);
 			}
 
 			.btn:disabled {
-				opacity: 0.5;
+				opacity: 0.4;
 				cursor: not-allowed;
+				transform: none;
+			}
+
+			.btn:disabled:hover {
+				background: var(--button-bg);
+				box-shadow: none;
 			}
 
 			.btn-primary {
-				background-color: var(--slider-thumb);
-				color: white;
+				background: linear-gradient(
+					135deg,
+					var(--accent-primary) 0%,
+					var(--accent-secondary) 100%
+				);
+				color: #0a0e14;
+				border: none;
+				font-weight: 600;
+				box-shadow: 0 0 20px var(--glow);
 			}
 
 			.btn-primary:hover {
-				background-color: var(--slider-thumb-hover);
+				background: linear-gradient(
+					135deg,
+					var(--accent-secondary) 0%,
+					var(--accent-primary) 100%
+				);
+				box-shadow: 0 0 30px var(--glow), 0 4px 16px var(--shadow);
 			}
 
 			.btn-large {
-				padding: 12px 24px;
-				font-size: 16px;
+				padding: 14px 32px;
+				font-size: 15px;
+				font-weight: 600;
 				box-sizing: content-box;
 				min-width: 6ch;
 				text-align: center;
@@ -153,25 +305,35 @@
 			#text-input {
 				width: 100%;
 				flex: 1;
-				padding: 15px;
+				padding: 20px;
 				font-size: 16px;
-				border: 1px solid var(--border-color);
-				border-radius: 4px;
+				font-family: 'DM Sans', sans-serif;
+				line-height: 1.6;
+				border: 2px solid var(--border-color);
+				border-radius: 8px;
 				resize: none;
-				background-color: var(--bg-secondary);
+				background: var(--bg-tertiary);
 				color: var(--text-primary);
+				transition: all 0.3s ease;
+			}
+
+			#text-input:focus {
+				outline: none;
+				border-color: var(--accent-primary);
+				box-shadow: 0 0 0 3px var(--glow);
 			}
 
 			#text-display {
 				width: 100%;
 				flex: 1;
-				padding: 15px;
+				padding: 20px;
 				font-size: 16px;
-				border: 1px solid var(--border-color);
-				border-radius: 4px;
-				background-color: var(--bg-secondary);
+				font-family: 'DM Sans', sans-serif;
+				border: 2px solid var(--border-color);
+				border-radius: 8px;
+				background: var(--bg-tertiary);
 				color: var(--text-secondary);
-				line-height: 1.6;
+				line-height: 1.8;
 				white-space: pre-wrap;
 				word-wrap: break-word;
 				overflow-y: auto;
@@ -179,122 +341,196 @@
 
 			#text-display .word {
 				cursor: pointer;
-				padding: 2px 0;
-				border-radius: 2px;
+				padding: 3px 4px;
+				border-radius: 4px;
+				transition: all 0.2s ease;
 			}
 
 			#text-display .word:hover {
-				background-color: var(--button-bg);
+				background: var(--button-bg);
+				color: var(--text-primary);
 			}
 
 			#text-display .word.current {
 				color: var(--highlight-color);
+				background: rgba(251, 191, 36, 0.1);
 			}
 
 			.word-display {
 				width: 100%;
-				max-width: 500px;
+				max-width: 600px;
 				min-height: 2cap;
-				height: 200px;
+				height: 240px;
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				border: 2px solid var(--border-color);
-				border-radius: 8px;
-				margin-bottom: 30px;
-				background-color: var(--bg-secondary);
+				border: none;
+				border-radius: 16px;
+				margin-bottom: 40px;
+				background: linear-gradient(
+					135deg,
+					var(--bg-secondary) 0%,
+					var(--bg-tertiary) 100%
+				);
 				font-size: 32px;
-				font-weight: bold;
+				font-weight: 700;
+				font-family: 'JetBrains Mono', monospace;
 				position: relative;
+				box-shadow:
+					0 10px 40px var(--shadow),
+					inset 0 1px 0 rgba(255, 255, 255, 0.1);
+				overflow: hidden;
+			}
+
+			.word-display::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				border-radius: 16px;
+				padding: 2px;
+				background: linear-gradient(
+					135deg,
+					var(--accent-primary),
+					var(--accent-secondary)
+				);
+				-webkit-mask:
+					linear-gradient(#fff 0 0) content-box,
+					linear-gradient(#fff 0 0);
+				-webkit-mask-composite: xor;
+				mask-composite: exclude;
+				opacity: 0.5;
+			}
+
+			.word-display.playing {
+				animation: glow 2s ease-in-out infinite;
 			}
 
 			#word-display-text {
 				display: flex;
+				position: relative;
+				z-index: 1;
 			}
 
 			.controls {
 				width: 100%;
-				max-width: 500px;
+				max-width: 600px;
 				display: flex;
 				flex-direction: column;
-				gap: 20px;
+				gap: 24px;
 			}
 
 			.media-controls {
 				display: flex;
 				justify-content: center;
-				gap: 15px;
+				gap: 16px;
 			}
 
 			.wpm-controls {
 				display: flex;
 				align-items: center;
-				gap: 15px;
+				gap: 16px;
+				padding: 16px;
+				background: var(--bg-secondary);
+				border-radius: 8px;
+				border: 1px solid var(--border-color);
 			}
 
 			.wpm-input {
-				width: 80px;
-				padding: 8px;
-				font-size: 14px;
+				width: 90px;
+				padding: 10px;
+				font-size: 15px;
+				font-weight: 600;
+				font-family: 'JetBrains Mono', monospace;
 				text-align: center;
-				border: 1px solid var(--border-color);
-				border-radius: 4px;
-				background-color: var(--bg-secondary);
-				color: var(--text-primary);
+				border: 2px solid var(--border-color);
+				border-radius: 6px;
+				background: var(--bg-tertiary);
+				color: var(--accent-primary);
+				transition: all 0.3s ease;
+			}
+
+			.wpm-input:focus {
+				outline: none;
+				border-color: var(--accent-primary);
+				box-shadow: 0 0 0 3px var(--glow);
 			}
 
 			.slider-container {
 				display: flex;
 				flex-direction: column;
-				gap: 8px;
+				gap: 10px;
 			}
 
 			.slider-label {
-				font-size: 14px;
+				font-size: 13px;
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.5px;
 				color: var(--text-secondary);
 			}
 
 			.progress-slider-container {
-				margin-top: 10px;
+				margin-top: 8px;
+				padding: 16px;
+				background: var(--bg-secondary);
+				border-radius: 8px;
+				border: 1px solid var(--border-color);
 			}
 
 			.progress-slider {
 				width: 100%;
-				height: 12px;
+				height: 8px;
 				-webkit-appearance: none;
 				appearance: none;
 				background: var(--slider-track);
-				border-radius: 6px;
+				border-radius: 4px;
 				outline: none;
+				cursor: pointer;
+				position: relative;
 			}
 
 			.progress-slider::-webkit-slider-thumb {
 				-webkit-appearance: none;
 				appearance: none;
-				width: 20px;
-				height: 20px;
-				background: var(--slider-thumb);
+				width: 18px;
+				height: 18px;
+				background: linear-gradient(
+					135deg,
+					var(--accent-primary),
+					var(--accent-secondary)
+				);
 				border-radius: 50%;
 				cursor: pointer;
-				transition: background 0.2s;
+				transition: all 0.3s ease;
+				box-shadow: 0 2px 8px var(--glow);
 			}
 
 			.progress-slider::-webkit-slider-thumb:hover {
-				background: var(--slider-thumb-hover);
+				transform: scale(1.2);
+				box-shadow: 0 4px 16px var(--glow);
 			}
 
 			.progress-slider::-moz-range-thumb {
-				width: 20px;
-				height: 20px;
-				background: var(--slider-thumb);
+				width: 18px;
+				height: 18px;
+				background: linear-gradient(
+					135deg,
+					var(--accent-primary),
+					var(--accent-secondary)
+				);
 				border-radius: 50%;
 				cursor: pointer;
 				border: none;
-				transition: background 0.2s;
+				transition: all 0.3s ease;
+				box-shadow: 0 2px 8px var(--glow);
 			}
 
 			.progress-slider::-moz-range-thumb:hover {
-				background: var(--slider-thumb-hover);
+				transform: scale(1.2);
+				box-shadow: 0 4px 16px var(--glow);
 			}
 
 			.hidden {
@@ -316,7 +552,7 @@
 				display: none;
 			}
 
-			@media (max-width: 767px) and (max-height: 500px) {
+			@media (max-width: 999px) and (max-height: 600px) {
 				#text-input,
 				#text-display,
 				#toggle-mode-btn {
@@ -525,94 +761,209 @@
 			}
 
 			/**
+			 * Breaks a long word into chunks by character count
+			 * @param {string} word - The word to break
+			 * @param {number} maxLength - Maximum length per chunk
+			 * @param {number} wordIndex - The word index for tracking
+			 * @returns {Array<{type: 'word', text: string, wordIndex: number, partIndex: number, displayText?: string}>}
+			 */
+			function breakLongWord(word, maxLength, wordIndex) {
+				const chunks = [];
+
+				// Break by hard character count
+				for (
+					let i = 0;
+					i < word.length;
+					i += maxLength
+				) {
+					const chunk = word.slice(i, i + maxLength);
+					const isLast = i + maxLength >= word.length;
+					chunks.push({
+						type: /** @type {const} */ ('word'),
+						text: chunk,
+						wordIndex: wordIndex,
+						partIndex: i / maxLength,
+						displayText: isLast
+							? chunk
+							: chunk + '-',
+					});
+				}
+
+				return chunks;
+			}
+
+			/**
+			 * Helper function to emit a word token, handling slash-splitting and long words
+			 * @param {string} wordText
+			 * @param {number} wordIndex
+			 * @param {Array<{type: 'word' | 'whitespace', text: string, wordIndex?: number, partIndex?: number, displayText?: string}>} tokens
+			 * @returns {number} Updated word index
+			 */
+			function emitWordToken(
+				wordText,
+				wordIndex,
+				tokens,
+			) {
+				const slashParts = wordText.split('/');
+
+				if (slashParts.length > 1) {
+					for (
+						let k = 0;
+						k < slashParts.length;
+						k++
+					) {
+						const part = slashParts[k];
+						if (part.length === 0)
+							continue;
+
+						const partWithSlash =
+							k < slashParts.length - 1
+								? part + '/'
+								: part;
+
+						if (partWithSlash.length > 20) {
+							const chunks = breakLongWord(
+								partWithSlash,
+								20,
+								wordIndex,
+							);
+							tokens.push(...chunks);
+						}
+						else {
+							tokens.push({
+								type:
+									/** @type {const} */ ('word'),
+								text: partWithSlash,
+								wordIndex: wordIndex,
+								partIndex: 0,
+							});
+						}
+						wordIndex++;
+					}
+				}
+				else {
+					if (wordText.length > 20) {
+						const chunks = breakLongWord(
+							wordText,
+							20,
+							wordIndex,
+						);
+						tokens.push(...chunks);
+					}
+					else {
+						tokens.push({
+							type: /** @type {const} */ ('word'),
+							text: wordText,
+							wordIndex: wordIndex,
+							partIndex: 0,
+						});
+					}
+					wordIndex++;
+				}
+
+				return wordIndex;
+			}
+
+			/**
 			 * @param {string} text
 			 */
 			function tokenizeText(text) {
 				const tokens = [];
-				let remaining = text;
 				let wordIndex = 0;
 
-				while (remaining.length > 0) {
-					const match = remaining.match(
-						/^(\s+)|^(\S+)/,
-					);
-					if (!match)
-						break;
+				const segmenter = new Intl.Segmenter(
+					undefined,
+					{
+						granularity: 'word',
+					},
+				);
+				const segments = Array.from(
+					segmenter.segment(text),
+				);
 
-					const [matchText] = match;
+				let pendingLeadingChars = '';
 
-					if (/^\s+$/.test(matchText)) {
-						tokens.push({
-							type:
-								/** @type {const} */ ('whitespace'),
-							text: matchText,
-						});
-						remaining = remaining.slice(
-							matchText.length,
-						);
-					}
-					else {
-						let wordText = matchText;
+				for (let i = 0; i < segments.length; i++) {
+					const segment = segments[i];
 
-						const parts = [];
-						const slashParts = wordText.split('/');
+					if (segment.isWordLike) {
+						// Start with any pending leading characters
+						let wordText = pendingLeadingChars +
+							segment.segment;
+						pendingLeadingChars = '';
 
+						// Look ahead to collect trailing non-word characters (punctuation, etc.)
+						// Stop when we hit whitespace or another word-like segment
 						for (
-							let i = 0;
-							i < slashParts.length;
-							i++
+							let j = i + 1;
+							j < segments.length;
+							j++
 						) {
-							if (i < slashParts.length - 1)
-								parts.push(slashParts[i] + '/');
-							else if (slashParts[i].length > 0)
-								parts.push(slashParts[i]);
-						}
-
-						for (const part of parts) {
-							if (part.length > 20) {
-								const chunkSize = 20;
-								for (
-									let i = 0;
-									i < part.length;
-									i += chunkSize
-								) {
-									const chunk = part.slice(
-										i,
-										i + chunkSize,
-									);
-									const isLast =
-										i + chunkSize >=
-											part.length;
-									const displayText = isLast
-										? chunk
-										: chunk + '-';
-									tokens.push({
-										type:
-											/** @type {const} */ ('word'),
-										text: chunk,
-										wordIndex: wordIndex,
-										partIndex: i /
-											chunkSize,
-										displayText,
-									});
+							const nextSeg = segments[j];
+							if (!nextSeg.isWordLike) {
+								const trimmed = nextSeg.segment
+									.trim();
+								if (trimmed.length > 0) {
+									// Non-whitespace punctuation - attach it
+									wordText += nextSeg.segment;
+									i = j; // Skip this segment in main loop
+								}
+								else {
+									// Whitespace - stop looking ahead
+									break;
 								}
 							}
 							else {
-								tokens.push({
-									type:
-										/** @type {const} */ ('word'),
-									text: part,
-									wordIndex: wordIndex,
-									partIndex: 0,
-								});
+								// Another word - stop looking ahead
+								break;
 							}
-							wordIndex++;
 						}
-						remaining = remaining.slice(
-							matchText.length,
+
+						// Emit the word token
+						wordIndex = emitWordToken(
+							wordText,
+							wordIndex,
+							tokens,
 						);
 					}
+					else {
+						// Non-word segment
+						const trimmed = segment.segment.trim();
+						if (trimmed.length > 0) {
+							// Non-whitespace character - accumulate as leading for next word
+							pendingLeadingChars += segment
+								.segment;
+						}
+						else {
+							// Whitespace
+							// If we have pending leading chars, emit them as a standalone word token
+							if (pendingLeadingChars) {
+								wordIndex = emitWordToken(
+									pendingLeadingChars,
+									wordIndex,
+									tokens,
+								);
+								pendingLeadingChars = '';
+							}
+							// Emit the whitespace
+							tokens.push({
+								type:
+									/** @type {const} */ ('whitespace'),
+								text: segment.segment,
+							});
+						}
+					}
 				}
+
+				// Handle any remaining pending leading chars (e.g., text ends with punctuation)
+				if (pendingLeadingChars) {
+					emitWordToken(
+						pendingLeadingChars,
+						wordIndex,
+						tokens,
+					);
+				}
+
 				return tokens;
 			}
 
@@ -702,10 +1053,18 @@
 					'.word',
 				);
 
-				wordSpans.forEach((span, index) => {
+				const currentToken = wordTokens[currentIndex];
+				const currentWordIndex = currentToken
+					? currentToken.wordIndex
+					: -1;
+
+				wordSpans.forEach((span) => {
+					const spanWordIndex = parseInt(
+						span.dataset.wordIndex ?? '-1',
+					);
 					span.classList.toggle(
 						'current',
-						index === currentIndex,
+						spanWordIndex === currentWordIndex,
 					);
 				});
 
@@ -743,6 +1102,7 @@
 
 				isPlaying = true;
 				playPauseBtn.textContent = 'Pause';
+				wordDisplay.classList.add('playing');
 				schedulePlayNext();
 			}
 
@@ -773,6 +1133,7 @@
 				clearTimeout(playInterval);
 				playInterval = undefined;
 				playPauseBtn.textContent = 'Play';
+				wordDisplay.classList.remove('playing');
 			}
 
 			function togglePlayback() {
@@ -815,6 +1176,10 @@
 
 					textDisplay.innerHTML = '';
 					let wordTokenIndex = 0;
+					let currentWordIndex = -1;
+					/** @type {HTMLSpanElement | null} */
+					let currentWordSpan = null;
+
 					tokens.forEach((token) => {
 						if (token.type === 'whitespace') {
 							const span = document.createElement(
@@ -822,30 +1187,66 @@
 							);
 							span.textContent = token.text;
 							textDisplay.appendChild(span);
+							currentWordSpan = null;
 						}
 						else {
-							const span = document.createElement(
-								'span',
-							);
-							span.className = 'word';
-							span.textContent = token.text;
-							span.dataset.wordIndex =
-								wordTokenIndex
-									.toString();
+							// Check if this is a new word or part of the previous word
+							if (
+								token.wordIndex !==
+									currentWordIndex
+							) {
+								// New word - create a new span
+								currentWordSpan = document
+									.createElement(
+										'span',
+									);
+								currentWordSpan.className =
+									'word';
+								currentWordSpan.textContent =
+									token.text;
+								// Store the wordTokens array index for click navigation
+								currentWordSpan.dataset
+									.wordTokenIndex =
+										wordTokenIndex
+											.toString();
+								// Store the semantic word index for highlighting
+								currentWordSpan.dataset
+									.wordIndex = token.wordIndex
+										.toString();
 
-							const currentIndexValue =
-								wordTokenIndex;
-							span.addEventListener(
-								'click',
-								() => {
-									stopPlayback();
-									currentIndex =
-										currentIndexValue;
-									updateWordDisplay();
-								},
-							);
-							textDisplay.appendChild(span);
+								const currentIndexValue =
+									wordTokenIndex;
+								currentWordSpan
+									.addEventListener(
+										'click',
+										() => {
+											stopPlayback();
+											currentIndex =
+												currentIndexValue;
+											updateWordDisplay();
+										},
+									);
+								textDisplay.appendChild(
+									currentWordSpan,
+								);
+								currentWordIndex =
+									token.wordIndex;
+							}
+							// Increment wordTokenIndex for EVERY word token (including continuation chunks)
 							wordTokenIndex++;
+
+							// For continuation chunks, append to existing span
+							if (
+								token.wordIndex ===
+									currentWordIndex &&
+								token.partIndex > 0
+							) {
+								if (currentWordSpan) {
+									currentWordSpan
+										.textContent +=
+											token.text;
+								}
+							}
 						}
 					});
 

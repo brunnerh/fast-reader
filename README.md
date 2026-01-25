@@ -8,7 +8,7 @@ on a central anchor letter to reduce eye movement and improve reading speed.
 ## Features
 
 - **Anchor letter positioning**: Displays words centered on their middle letter
-  (red highlighted)
+  (highlighted)
 - **Playback controls**: Play, Pause, and Reset buttons
 - **Adjustable speed**: WPM control via input field and slider
 - **Variable timing**: Longer words and punctuation introduce slight pauses
