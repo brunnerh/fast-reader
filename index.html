@@ -1327,7 +1327,7 @@
 
 			wpmInput.addEventListener('input', () => {
 				let value = parseInt(wpmInput.value) || 200;
-				value = Math.max(100, Math.min(500, value));
+				value = Math.max(100, value);
 				wpm = value;
 				wpmSlider.value = value.toString();
 				if (isPlaying) {
