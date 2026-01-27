@@ -207,6 +207,7 @@
 			.panel-header {
 				display: flex;
 				justify-content: space-between;
+				gap: 12px;
 				align-items: center;
 				margin-bottom: 20px;
 				padding-bottom: 16px;
@@ -315,12 +316,62 @@
 			}
 
 			.btn-large {
+				--padding-inline: 32px;
 				padding: 14px 32px;
 				font-size: 15px;
 				font-weight: 600;
-				box-sizing: content-box;
-				min-width: 6ch;
+				width: calc(6ch + var(--padding-inline) * 2);
+				min-width: max-content;
 				text-align: center;
+			}
+
+			#paste-icon-btn {
+				anchor-name: --paste-icon-anchor;
+			}
+
+			#paste-tooltip[popover] {
+				position: absolute;
+				position-anchor: --paste-icon-anchor;
+				top: anchor(bottom);
+				left: anchor(center);
+				transform: translate(-50%, 6px);
+				padding: 6px 10px;
+				border-radius: 8px;
+				background: var(--bg-tertiary);
+				border: 1px solid var(--border-color);
+				color: var(--text-primary);
+				font-size: 12px;
+				font-weight: 600;
+				letter-spacing: 0.3px;
+				white-space: nowrap;
+				box-shadow: 0 8px 20px var(--shadow);
+				opacity: 0;
+				pointer-events: none;
+				transition: opacity 0.2s ease, transform 0.2s ease;
+				z-index: 10;
+			}
+
+			#paste-tooltip[popover]:popover-open {
+				opacity: 1;
+				transform: translate(-50%, 10px);
+			}
+
+			.paste-icon-btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 64px;
+				padding: 15px;
+				min-width: 0;
+				border-radius: 10px;
+			}
+
+			.paste-icon-btn svg {
+				width: 16px;
+				min-width: 16px;
+				height: 16px;
+				min-height: 16px;
+				fill: currentColor;
 			}
 
 			#text-input {
@@ -581,6 +632,10 @@
 					display: none !important;
 				}
 
+				#paste-icon-btn {
+					display: none;
+				}
+
 				#paste-btn {
 					display: block;
 				}
@@ -608,6 +663,29 @@
 					>
 						Start
 					</button>
+					<button
+						id="paste-icon-btn"
+						class="btn btn-large paste-icon-btn"
+						type="button"
+						aria-label="Paste"
+						aria-describedby="paste-tooltip"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							id="icon"
+							viewBox="0 0 32 32"
+						>
+							<path
+								d="M26,20H17.83l2.58-2.59L19,16l-5,5,5,5,1.41-1.41L17.83,22H26v8h2V22A2,2,0,0,0,26,20Z"
+							/>
+							<path
+								d="M23.71,9.29l-7-7A1,1,0,0,0,16,2H6A2,2,0,0,0,4,4V28a2,2,0,0,0,2,2h8V28H6V4h8v6a2,2,0,0,0,2,2h6v2h2V10A1,1,0,0,0,23.71,9.29ZM16,4.41,21.59,10H16Z"
+							/>
+						</svg>
+					</button>
+					<div id="paste-tooltip" popover="manual" role="tooltip">
+						Paste
+					</div>
 					<button
 						id="paste-btn"
 						class="btn btn-primary btn-large"
@@ -708,6 +786,14 @@
 			const pasteBtn =
 				/** @type {HTMLButtonElement} */ (get(
 					'paste-btn',
+				));
+			const pasteIconBtn =
+				/** @type {HTMLButtonElement} */ (get(
+					'paste-icon-btn',
+				));
+			const pasteTooltip =
+				/** @type {HTMLElement} */ (get(
+					'paste-tooltip',
 				));
 			const wordDisplay = get('word-display');
 			const wordDisplayText = get('word-display-text');
@@ -1376,6 +1462,47 @@
 			});
 
 			pasteBtn.addEventListener('click', handlePaste);
+			pasteIconBtn.addEventListener('click', handlePaste);
+
+			if ('showPopover' in pasteTooltip) {
+				let isTooltipOpen = false;
+				const showPasteTooltip = () => {
+					if (isTooltipOpen)
+						return;
+					isTooltipOpen = true;
+					pasteTooltip.showPopover();
+				};
+
+				const hidePasteTooltip = () => {
+					if (!isTooltipOpen)
+						return;
+					isTooltipOpen = false;
+					pasteTooltip.hidePopover();
+				};
+
+				pasteIconBtn.addEventListener(
+					'pointerenter',
+					showPasteTooltip,
+				);
+				pasteIconBtn.addEventListener(
+					'pointerleave',
+					hidePasteTooltip,
+				);
+				pasteIconBtn.addEventListener(
+					'focus',
+					showPasteTooltip,
+				);
+				pasteIconBtn.addEventListener(
+					'blur',
+					hidePasteTooltip,
+				);
+			}
+			else {
+				pasteIconBtn.setAttribute(
+					'title',
+					'Paste',
+				);
+			}
 
 			document.addEventListener('paste', (event) => {
 				if (document.activeElement === textInput)
